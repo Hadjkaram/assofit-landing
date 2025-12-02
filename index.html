@@ -1,272 +1,320 @@
 <!DOCTYPE html>
-<html lang="fr" class="scroll-smooth">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AssoFit - L'App de Rencontre Sportive</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <title>AssoFit - Admin Command Center</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js pour les graphiques -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Police Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        brand: {
-                            red: '#E11D48',    
-                            dark: '#0F172A',   
-                            light: '#F8FAFC',
-                        }
-                    },
-                    animation: {
-                        'float': 'float 6s ease-in-out infinite',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-20px)' },
-                        }
-                    }
+                    colors: { brand: { red: '#E11D48', dark: '#0F172A' } }
                 }
             }
         }
     </script>
     <style>
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        /* Effet verre pour le formulaire */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+        .hide { display: none !important; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="bg-brand-light text-slate-800 antialiased overflow-x-hidden">
+<body class="bg-slate-50 text-slate-900 font-sans antialiased h-screen flex flex-col md:flex-row overflow-hidden">
 
-    <nav class="fixed w-full bg-white/90 backdrop-blur-md z-50 border-b border-slate-100 transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <div class="text-2xl font-extrabold tracking-tight text-brand-red flex items-center gap-2 cursor-pointer" onclick="window.scrollTo(0,0)">
-                AssoFit.
+    <!-- ECRAN DE LOGIN (Overlay) -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-slate-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-8 rounded-2xl shadow-xl border border-slate-100 text-center">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
             </div>
-            
-            <div class="flex items-center gap-6">
-                <a href="#contact" class="text-sm font-semibold text-slate-600 hover:text-brand-red transition hidden sm:block">
-                    Contact
-                </a>
-                <a href="#download" class="bg-brand-dark text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-slate-700 transition shadow-lg shadow-brand-dark/20 flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
-                    Télécharger l'appli
-                </a>
-            </div>
+            <h1 class="text-2xl font-extrabold text-slate-900 mb-1">AssoFit Admin</h1>
+            <p class="text-slate-500 mb-8">Accès réservé au personnel autorisé</p>
+
+            <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Identifiant Staff</label>
+                    <input type="email" value="admin@assofit.fr" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-red-500 outline-none" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Mot de passe</label>
+                    <input type="password" value="password" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-red-500 outline-none" required>
+                </div>
+                <button type="submit" id="login-btn" class="w-full bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition flex items-center justify-center">
+                    Se connecter au Dashboard
+                </button>
+            </form>
+            <p class="mt-6 text-xs text-slate-400">IP: 192.168.1.42 enregistrée.</p>
         </div>
-    </nav>
-
-    <header class="pt-32 pb-20 px-6 lg:pt-40 lg:pb-32" id="download">
-        <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
-            
-            <div class="order-2 lg:order-1">
-                <span class="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-red-50 text-brand-red text-xs font-bold tracking-wide uppercase mb-6 border border-red-100">
-                    <span class="w-2 h-2 rounded-full bg-brand-red animate-pulse"></span>
-                    Disponible en France
-                </span>
-                <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 leading-tight mb-6">
-                    Plus qu'une app, <br>
-                    votre <span class="text-brand-red">tribu</span> sport.
-                </h1>
-                <p class="text-lg text-slate-500 mb-8 max-w-lg leading-relaxed">
-                    Le premier réseau social dédié aux sportifs. Partagez vos exploits, matchez vos partenaires et trouvez qui s'entraîne autour de vous.
-                </p>
-                
-                <div class="flex flex-col sm:flex-row gap-4">
-                    <button class="flex items-center bg-black text-white px-5 py-3 rounded-xl hover:bg-slate-800 transition shadow-xl shadow-slate-900/20 w-max">
-                        <svg class="w-8 h-8 mr-3" fill="currentColor" viewBox="0 0 384 512"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 46.9 126.7 84.5 126.7 29 0 37.8-19.6 71.9-19.6s41.2 19.6 74.3 19.6c29.5 0 65.5-84.4 79.5-126.7-65.7-22.3-99.3-52-99.3-126.7zM203 111.4c17.8-22 30.1-52.7 27.2-80.6-26 2.4-58.2 15-77.5 39.7-15.6 19.7-29.3 52.3-26.1 79.1 29.5 2.2 59.9-15.8 76.4-38.2z"/></svg>
-                        <div class="text-left">
-                            <div class="text-xs">Télécharger sur</div>
-                            <div class="text-lg font-bold leading-none font-sans">App Store</div>
-                        </div>
-                    </button>
-
-                    <button class="flex items-center bg-black text-white px-5 py-3 rounded-xl hover:bg-slate-800 transition shadow-xl shadow-slate-900/20 w-max">
-                        <svg class="w-7 h-8 mr-3" fill="currentColor" viewBox="0 0 512 512"><path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l220.7-221.2-60.1-60.1L104.6 499z"/></svg>
-                        <div class="text-left">
-                            <div class="text-xs">DISPONIBLE SUR</div>
-                            <div class="text-lg font-bold leading-none font-sans">Google Play</div>
-                        </div>
-                    </button>
-                </div>
-            </div>
-
-            <div class="order-1 lg:order-2 flex justify-center relative">
-                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-tr from-red-200 to-orange-100 rounded-full blur-3xl opacity-50 -z-10"></div>
-
-                <div class="relative mx-auto border-gray-900 bg-gray-900 border-[14px] rounded-[2.5rem] h-[600px] w-[300px] shadow-2xl flex flex-col animate-float">
-                    <div class="h-[32px] w-[3px] bg-gray-800 absolute -start-[17px] top-[72px] rounded-s-lg"></div>
-                    <div class="h-[46px] w-[3px] bg-gray-800 absolute -start-[17px] top-[124px] rounded-s-lg"></div>
-                    <div class="h-[46px] w-[3px] bg-gray-800 absolute -start-[17px] top-[178px] rounded-s-lg"></div>
-                    <div class="h-[64px] w-[3px] bg-gray-800 absolute -end-[17px] top-[142px] rounded-e-lg"></div>
-                    
-                    <div class="rounded-[2rem] overflow-hidden w-full h-full bg-white relative">
-                        <div class="absolute top-0 w-full pt-12 pb-4 px-6 bg-white/90 backdrop-blur-sm z-20 border-b border-slate-100 flex justify-between items-center">
-                            <span class="font-bold text-xl text-brand-red">AssoFit</span>
-                            <div class="w-8 h-8 rounded-full bg-slate-100 bg-[url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=64&q=80')] bg-cover"></div>
-                        </div>
-
-                        <div class="overflow-y-auto h-full pt-28 pb-20 px-4 no-scrollbar space-y-4">
-                            <div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-                                <div class="flex-shrink-0 w-16 h-16 rounded-full ring-2 ring-brand-red p-0.5"><img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=100&q=80" class="w-full h-full rounded-full object-cover"></div>
-                                <div class="flex-shrink-0 w-16 h-16 rounded-full ring-2 ring-slate-200 p-0.5"><img src="https://images.unsplash.com/photo-1531891437567-31b44368cc76?auto=format&fit=crop&w=100&q=80" class="w-full h-full rounded-full object-cover"></div>
-                                <div class="flex-shrink-0 w-16 h-16 rounded-full ring-2 ring-slate-200 p-0.5"><img src="https://images.unsplash.com/photo-1529139574466-a302d2052574?auto=format&fit=crop&w=100&q=80" class="w-full h-full rounded-full object-cover"></div>
-                            </div>
-                            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                                <div class="h-48 bg-slate-200 bg-[url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=500&q=80')] bg-cover bg-center"></div>
-                                <div class="p-3">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <h4 class="font-bold text-sm">Session Running 🏃‍♂️</h4>
-                                        <span class="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">À 500m</span>
-                                    </div>
-                                    <p class="text-xs text-slate-500">Qui est chaud pour un 10km ce soir ?</p>
-                                </div>
-                            </div>
-                            <div class="absolute bottom-24 left-4 right-4 bg-slate-900/90 backdrop-blur text-white p-4 rounded-xl shadow-xl flex items-center gap-3 animate-bounce">
-                                <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-xl">🔥</div>
-                                <div>
-                                    <p class="font-bold text-sm">C'est un Match !</p>
-                                    <p class="text-xs text-slate-300">Julie fait aussi du Crossfit.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="absolute bottom-0 w-full h-20 bg-white border-t border-slate-100 flex justify-around items-center px-2 pb-4">
-                            <div class="text-brand-red text-2xl">🏠</div>
-                            <div class="text-slate-300 text-2xl">🔍</div>
-                            <div class="w-12 h-12 bg-brand-red rounded-full flex items-center justify-center text-white text-2xl shadow-lg -mt-8 border-4 border-white">+</div>
-                            <div class="text-slate-300 text-2xl">💬</div>
-                            <div class="text-slate-300 text-2xl">👤</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <section class="py-24 bg-white relative z-10">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-20">
-                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Tout l'univers du sport dans ta poche</h2>
-                <p class="text-slate-500 max-w-2xl mx-auto">Une expérience complète pour connecter, matcher et s'entraîner.</p>
-            </div>
-
-            <div class="grid md:grid-cols-3 gap-10">
-                <div class="group p-8 rounded-[2rem] bg-slate-50 hover:bg-white hover:shadow-xl transition border border-slate-100">
-                    <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-2xl mb-6 text-white shadow-lg shadow-pink-500/20">📸</div>
-                    <h3 class="text-xl font-bold mb-3 text-slate-900">Le "Insta" des Sportifs</h3>
-                    <p class="text-slate-500 text-sm leading-relaxed">Un fil d'actualité 100% dédié au sport. Partagez vos records et motivez votre communauté.</p>
-                </div>
-                <div class="group p-8 rounded-[2rem] bg-slate-50 hover:bg-white hover:shadow-xl transition border border-slate-100">
-                    <div class="w-14 h-14 bg-gradient-to-br from-brand-red to-orange-500 rounded-2xl flex items-center justify-center text-2xl mb-6 text-white shadow-lg shadow-red-500/20">🔥</div>
-                    <h3 class="text-xl font-bold mb-3 text-slate-900">Match & Train</h3>
-                    <p class="text-slate-500 text-sm leading-relaxed">Swipez pour trouver le partenaire idéal. Filtrez par sport, niveau et disponibilité.</p>
-                </div>
-                <div class="group p-8 rounded-[2rem] bg-slate-50 hover:bg-white hover:shadow-xl transition border border-slate-100">
-                    <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center text-2xl mb-6 text-white shadow-lg shadow-blue-500/20">📍</div>
-                    <h3 class="text-xl font-bold mb-3 text-slate-900">Radar de Proximité</h3>
-                    <p class="text-slate-500 text-sm leading-relaxed">Détectez les membres AssoFit à la salle ou au parc en temps réel et brisez la glace.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="contact" class="relative py-32 bg-slate-900 overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-            <div class="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-brand-red/20 rounded-full blur-[100px] animate-pulse-slow"></div>
-            <div class="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[100px] animate-pulse-slow" style="animation-delay: 1s;"></div>
-        </div>
-
-        <div class="max-w-6xl mx-auto px-6 relative z-10">
-            <div class="grid lg:grid-cols-2 gap-16 items-center">
-                
-                <div class="text-white">
-                    <h2 class="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
-                        Une question ? <br>
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-red to-orange-500">Discutons.</span>
-                    </h2>
-                    <p class="text-slate-400 text-lg mb-10 max-w-md">
-                        Que vous soyez un athlète, un coach ou un investisseur, notre équipe est là pour vous répondre.
-                    </p>
-
-                    <div class="space-y-6">
-                        <div class="flex items-center gap-4 group cursor-pointer">
-                            <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-brand-red transition duration-300">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                            </div>
-                            <div>
-                                <p class="text-sm text-slate-400">Email</p>
-                                <p class="text-lg font-semibold">hello@assofit.fr</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-4 group cursor-pointer">
-                            <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-brand-red transition duration-300">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                            </div>
-                            <div>
-                                <p class="text-sm text-slate-400">Siège Social</p>
-                                <p class="text-lg font-semibold">Station F, Paris</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glass-panel p-8 md:p-10 rounded-3xl">
-                    <form class="space-y-6">
-                        <div class="grid grid-cols-2 gap-6">
-                            <div class="space-y-2">
-                                <label class="text-sm text-slate-400 font-medium ml-1">Prénom</label>
-                                <input type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-red/50 transition" placeholder="David">
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-sm text-slate-400 font-medium ml-1">Nom</label>
-                                <input type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-red/50 transition" placeholder="Beckham">
-                            </div>
-                        </div>
-                        
-                        <div class="space-y-2">
-                            <label class="text-sm text-slate-400 font-medium ml-1">Email</label>
-                            <input type="email" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-red/50 transition" placeholder="david@example.com">
-                        </div>
-
-                        <div class="space-y-2">
-                            <label class="text-sm text-slate-400 font-medium ml-1">Message</label>
-                            <textarea rows="4" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-red/50 transition resize-none" placeholder="Je souhaiterais..."></textarea>
-                        </div>
-
-                        <button type="button" class="w-full bg-gradient-to-r from-brand-red to-orange-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-500/20 hover:shadow-red-500/40 transform hover:-translate-y-1 transition duration-300">
-                            Envoyer le message
-                        </button>
-                    </form>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <footer class="bg-slate-900 border-t border-slate-800 py-8 text-center text-slate-500 text-sm">
-        <div class="border-t border-slate-800 pt-8 mt-12 text-center">
-    <p class="text-slate-500 text-sm">
-        &copy; 2025 AssoFit SAS. Tous droits réservés. 
-        <a href="#" class="hover:text-white ml-2">CGU</a> &bull; 
-        <a href="#" class="hover:text-white ml-2">Confidentialité</a>
-    </p>
-    <!-- AJOUTE CECI : Le lien secret vers l'ERP -->
-    <div class="mt-4">
-        <a href="Lien_Vers_Ton_App_React" class="text-xs text-slate-700 hover:text-rose-600 transition flex items-center justify-center gap-2">
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-            Accès Staff (Admin)
-        </a>
     </div>
-</div>
 
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col z-10">
+        <div class="p-6">
+            <h1 class="text-2xl font-extrabold tracking-tight text-red-600 flex items-center gap-2">
+                AssoFit
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 font-bold tracking-wide">ADMIN</span>
+            </h1>
+        </div>
+        <nav class="flex-1 py-4 space-y-1">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center space-x-3 px-6 py-4 bg-red-50 text-red-600 border-r-4 border-red-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                <span class="font-medium">Dashboard</span>
+            </button>
+            <button onclick="switchTab('users')" id="nav-users" class="nav-item w-full flex items-center space-x-3 px-6 py-4 text-slate-500 hover:bg-slate-50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <span class="font-medium">Utilisateurs</span>
+            </button>
+            <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-item w-full flex items-center space-x-3 px-6 py-4 text-slate-500 hover:bg-slate-50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                <span class="font-medium">Analytics Web</span>
+            </button>
+        </nav>
+        <div class="p-4 border-t border-slate-100">
+            <button onclick="location.reload()" class="flex items-center space-x-3 text-slate-500 hover:text-red-600 w-full px-4 py-2 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                <span class="font-medium text-sm">Déconnexion</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col h-full relative">
+        <!-- HEADER -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 flex-shrink-0">
+            <h2 id="page-title" class="text-xl font-bold text-slate-800">Dashboard</h2>
+            <div class="flex items-center space-x-4">
+                <div class="text-right hidden sm:block">
+                    <p class="text-sm font-bold text-slate-900">David Able</p>
+                    <p class="text-xs text-slate-500">CEO / Super Admin</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold">DA</div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="p-8 overflow-y-auto fade-in h-full">
+            <!-- KPI CARDS -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Card 1 -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-xl bg-green-100 text-green-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+                        <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-50 text-green-600">+12%</span>
+                    </div>
+                    <h3 class="text-slate-500 text-sm font-medium">Revenu Mensuel</h3>
+                    <p class="text-2xl font-bold text-slate-900 mt-1">2,450 €</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-xl bg-blue-100 text-blue-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg></div>
+                        <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-50 text-green-600">+8.1%</span>
+                    </div>
+                    <h3 class="text-slate-500 text-sm font-medium">Utilisateurs Actifs</h3>
+                    <p class="text-2xl font-bold text-slate-900 mt-1">1,204</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-xl bg-purple-100 text-purple-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg></div>
+                        <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-50 text-green-600">+24%</span>
+                    </div>
+                    <h3 class="text-slate-500 text-sm font-medium">Visites Site Web</h3>
+                    <p class="text-2xl font-bold text-slate-900 mt-1">15,300</p>
+                </div>
+                 <!-- Card 4 -->
+                 <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-xl bg-red-100 text-red-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
+                        <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-50 text-green-600">+1.2%</span>
+                    </div>
+                    <h3 class="text-slate-500 text-sm font-medium">Taux Conversion App</h3>
+                    <p class="text-2xl font-bold text-slate-900 mt-1">4.2%</p>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-6">
+                <!-- CHART -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-900 mb-6">Trafic Site vs Téléchargements App</h3>
+                    <div class="w-full h-80">
+                        <canvas id="trafficChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- LIVE ACTIVITY -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-900 mb-6">Activité en direct</h3>
+                    <div class="space-y-6">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-2 h-2 mt-2 rounded-full bg-red-500 animate-pulse"></div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-900">Nouveau match ! <span class="text-red-500">Tennis</span></p>
+                                <p class="text-xs text-slate-500">Il y a 2 min • Paris</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="w-2 h-2 mt-2 rounded-full bg-red-500 animate-pulse"></div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-900">Nouvelle inscription Premium</p>
+                                <p class="text-xs text-slate-500">Il y a 12 min • Lyon</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="w-2 h-2 mt-2 rounded-full bg-red-500 animate-pulse"></div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-900">Match validé <span class="text-red-500">Crossfit</span></p>
+                                <p class="text-xs text-slate-500">Il y a 24 min • Marseille</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- USERS VIEW (Hidden by default) -->
+        <div id="view-users" class="p-8 overflow-y-auto fade-in h-full hide">
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-slate-900">Base Utilisateurs</h3>
+                    <button class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700">+ Ajouter</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold">
+                            <tr>
+                                <th class="px-6 py-4">Utilisateur</th>
+                                <th class="px-6 py-4">Plan</th>
+                                <th class="px-6 py-4">Statut</th>
+                                <th class="px-6 py-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-6 py-4">
+                                    <div class="font-medium text-slate-900">David Able</div>
+                                    <div class="text-xs text-slate-500">david@assofit.fr</div>
+                                </td>
+                                <td class="px-6 py-4"><span class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-medium">Premium</span></td>
+                                <td class="px-6 py-4"><span class="text-green-600 text-xs font-bold">Actif</span></td>
+                                <td class="px-6 py-4 text-slate-400">...</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-6 py-4">
+                                    <div class="font-medium text-slate-900">Sarah Cohen</div>
+                                    <div class="text-xs text-slate-500">sarah.c@gmail.com</div>
+                                </td>
+                                <td class="px-6 py-4"><span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-full text-xs font-medium">Gratuit</span></td>
+                                <td class="px-6 py-4"><span class="text-green-600 text-xs font-bold">Actif</span></td>
+                                <td class="px-6 py-4 text-slate-400">...</td>
+                            </tr>
+                             <tr class="hover:bg-slate-50">
+                                <td class="px-6 py-4">
+                                    <div class="font-medium text-slate-900">Marc Zuk</div>
+                                    <div class="text-xs text-slate-500">marc@meta.com</div>
+                                </td>
+                                <td class="px-6 py-4"><span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-full text-xs font-medium">Gratuit</span></td>
+                                <td class="px-6 py-4"><span class="text-red-600 text-xs font-bold">Banni</span></td>
+                                <td class="px-6 py-4 text-slate-400">...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ANALYTICS VIEW -->
+        <div id="view-analytics" class="p-8 h-full flex items-center justify-center text-slate-400 hide">
+            <div class="text-center">
+                <svg class="w-16 h-16 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                <p>Connexion API Analytics en cours...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- LOGIC JS -->
+    <script>
+        // --- 1. LOGIN LOGIC ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('login-btn');
+            btn.innerHTML = '<span class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>';
+            setTimeout(() => {
+                document.getElementById('login-screen').classList.add('hide');
+                initChart(); // Charge le graphique après login
+            }, 1000);
+        }
+
+        // --- 2. TABS LOGIC ---
+        function switchTab(tabName) {
+            // Hide all views
+            ['dashboard', 'users', 'analytics'].forEach(t => {
+                document.getElementById('view-' + t).classList.add('hide');
+                const btn = document.getElementById('nav-' + t);
+                btn.className = "nav-item w-full flex items-center space-x-3 px-6 py-4 text-slate-500 hover:bg-slate-50";
+            });
+
+            // Show active view
+            document.getElementById('view-' + tabName).classList.remove('hide');
+            const activeBtn = document.getElementById('nav-' + tabName);
+            activeBtn.className = "nav-item w-full flex items-center space-x-3 px-6 py-4 bg-red-50 text-red-600 border-r-4 border-red-600";
+            
+            // Update Title
+            const titles = { 'dashboard': 'Dashboard', 'users': 'Utilisateurs', 'analytics': 'Analytics Web' };
+            document.getElementById('page-title').innerText = titles[tabName];
+        }
+
+        // --- 3. CHART JS LOGIC ---
+        function initChart() {
+            const ctx = document.getElementById('trafficChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                    datasets: [{
+                        label: 'Visites Web',
+                        data: [4000, 3000, 2000, 2780, 1890, 2390, 3490],
+                        borderColor: '#94A3B8',
+                        tension: 0.4
+                    }, {
+                        label: 'Téléchargements App',
+                        data: [240, 139, 980, 390, 480, 380, 430],
+                        borderColor: '#E11D48',
+                        backgroundColor: 'rgba(225, 29, 72, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true, grid: { borderDash: [2, 4] } }, x: { grid: { display: false } } }
+                }
+            });
+        }
+    </script>
 </body>
 </html>
+```
+
+### Étape 2 : Connecte-le dans `index.html`
+
+Maintenant que tu as ce fichier `admin.html` (qui est du vrai HTML), tu peux le lier facilement.
+
+Dans ton fichier `index.html` (que tu m'as montré), cherche la partie Footer tout en bas.
+Remplace la ligne `<a href="Lien_Vers_Ton_App_React"...` par :
+
+```html
+<a href="admin.html" class="text-xs text-slate-700 hover:text-rose-600 transition flex items-center justify-center gap-2">
+    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+    Accès Staff (Admin)
+</a>
