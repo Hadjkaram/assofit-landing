@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AssoFit - Admin Command Center</title>
+    <!-- Tailwind CSS pour le style -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js pour les graphiques -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Police Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { brand: { red: '#E11D48', dark: '#0F172A' } }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hide { display: none !important; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans antialiased h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- 1. ECRAN DE LOGIN (S'affiche au chargement) -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-slate-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-8 rounded-2xl shadow-xl border border-slate-100 text-center">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <h1 class="text-2xl font-extrabold text-slate-900 mb-1">AssoFit Admin</h1>
+            <p class="text-slate-500 mb-8">Accès réservé au personnel autorisé</p>
+
+            <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Identifiant Staff</label>
+                    <input type="email" value="admin@assofit.fr" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-red-500 outline-none" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Mot de passe</label>
+                    <input type="password" value="password" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-red-500 outline-none" required>
+                </div>
+                <button type="submit" id="login-btn" class="w-full bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition flex items-center justify-center">
+                    Se connecter au Dashboard
+                </button>
+            </form>
+            <p class="mt-6 text-xs text-slate-400">IP: 192.168.1.42 enregistrée.</p>
+        </div>
+    </div>
+
+    <!-- 2. SIDEBAR (Menu de gauche) -->
+    <aside class="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col z-10">
+        <div class="p-6">
+            <h1 class="text-2xl font-extrabold tracking-tight text-red-600 flex items-center gap-2">
+                AssoFit
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 font-bold tracking-wide">ADMIN</span>
+            </h1>
+        </div>
+        <nav class="flex-1 py-4 space-y-1">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center space-x-3 px-6 py-4 bg-red-50 text-red-600 border-r-4 border-red-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                <span class="font-medium">Dashboard</span>
+            </button>
+            <button onclick="switchTab('users')" id="nav-users" class="nav-item w-full flex items-center space-x-3 px-6 py-4 text-slate-500 hover:bg-slate-50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <span class="font-medium">Utilisateurs</span>
+            </button>
+            <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-item w-full flex items-center space-x-3 px-6 py-4 text-slate-500 hover:bg-slate-50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                <span class="font-medium">Analytics Web</span>
+            </button>
+        </nav>
+        <div class="p-4 border-t border-slate-100">
+            <button onclick="location.reload()" class="flex items-center space-x-3 text-slate-500 hover:text-red-600 w-full px-4 py-2 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                <span class="font-medium text-sm">Déconnexion</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- 3. MAIN CONTENT (Contenu principal) -->
+    <main class="flex-1 flex flex-col h-full relative">
+        <!-- HEADER -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 flex-shrink-0">
+            <h2 id="page-title" class="text-xl font-bold text-slate-800">Dashboard</h2>
+            <div class="flex items-center space-x-4">
+                <div class="text-right hidden sm:block">
+                    <p class="text-sm font-bold text-slate-900">David Able</p>
+                    <p class="text-xs text-slate-500">CEO / Super Admin</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold">DA</div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="p-8 overflow-y-auto fade-in h-full">
+            <!-- KPI CARDS -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Card 1 -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-xl bg-green-100 text-green-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+                        <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-50 text-green-600">+12%</span>
+                    </div>
+                    <h3 class="text-slate-500 text-sm font-medium">Revenu Mensuel</h3>
+                    <p class="text-2xl font-bold text-slate-900 mt-1">2,450 €</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-xl bg-blue-100 text-blue-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg></div>
+                        <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-50 text-green-600">+8.1%</span>
+                    </div>
+                    <h3 class="text-slate-500 text-sm font-medium">Utilisateurs Actifs</h3>
+                    <p class="text-2xl font-bold text-slate-900 mt-1">1,204</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-xl bg-purple-100 text-purple-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg></div>
+                        <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-50 text-green-600">+24%</span>
+                    </div>
+                    <h3 class="text-slate-500 text-sm font-medium">Visites Site Web</h3>
+                    <p class="text-2xl font-bold text-slate-900 mt-1">15,300</p>
+                </div>
+                 <!-- Card 4 -->
+                 <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-xl bg-red-100 text-red-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
+                        <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-50 text-green-600">+1.2%</span>
+                    </div>
+                    <h3 class="text-slate-500 text-sm font-medium">Taux Conversion App</h3>
+                    <p class="text-2xl font-bold text-slate-900 mt-1">4.2%</p>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-6">
+                <!-- CHART -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-900 mb-6">Trafic Site vs Téléchargements App</h3>
+                    <div class="w-full h-80">
+                        <canvas id="trafficChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- LIVE ACTIVITY -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-900 mb-6">Activité en direct</h3>
+                    <div class="space-y-6">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-2 h-2 mt-2 rounded-full bg-red-500 animate-pulse"></div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-900">Nouveau match ! <span class="text-red-500">Tennis</span></p>
+                                <p class="text-xs text-slate-500">Il y a 2 min • Paris</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="w-2 h-2 mt-2 rounded-full bg-red-500 animate-pulse"></div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-900">Nouvelle inscription Premium</p>
+                                <p class="text-xs text-slate-500">Il y a 12 min • Lyon</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="w-2 h-2 mt-2 rounded-full bg-red-500 animate-pulse"></div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-900">Match validé <span class="text-red-500">Crossfit</span></p>
+                                <p class="text-xs text-slate-500">Il y a 24 min • Marseille</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- USERS VIEW (Hidden by default) -->
+        <div id="view-users" class="p-8 overflow-y-auto fade-in h-full hide">
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-slate-900">Base Utilisateurs</h3>
+                    <button class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700">+ Ajouter</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold">
+                            <tr>
+                                <th class="px-6 py-4">Utilisateur</th>
+                                <th class="px-6 py-4">Plan</th>
+                                <th class="px-6 py-4">Statut</th>
+                                <th class="px-6 py-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-6 py-4">
+                                    <div class="font-medium text-slate-900">David Able</div>
+                                    <div class="text-xs text-slate-500">david@assofit.fr</div>
+                                </td>
+                                <td class="px-6 py-4"><span class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-medium">Premium</span></td>
+                                <td class="px-6 py-4"><span class="text-green-600 text-xs font-bold">Actif</span></td>
+                                <td class="px-6 py-4 text-slate-400">...</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-6 py-4">
+                                    <div class="font-medium text-slate-900">Sarah Cohen</div>
+                                    <div class="text-xs text-slate-500">sarah.c@gmail.com</div>
+                                </td>
+                                <td class="px-6 py-4"><span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-full text-xs font-medium">Gratuit</span></td>
+                                <td class="px-6 py-4"><span class="text-green-600 text-xs font-bold">Actif</span></td>
+                                <td class="px-6 py-4 text-slate-400">...</td>
+                            </tr>
+                             <tr class="hover:bg-slate-50">
+                                <td class="px-6 py-4">
+                                    <div class="font-medium text-slate-900">Marc Zuk</div>
+                                    <div class="text-xs text-slate-500">marc@meta.com</div>
+                                </td>
+                                <td class="px-6 py-4"><span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-full text-xs font-medium">Gratuit</span></td>
+                                <td class="px-6 py-4"><span class="text-red-600 text-xs font-bold">Banni</span></td>
+                                <td class="px-6 py-4 text-slate-400">...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ANALYTICS VIEW -->
+        <div id="view-analytics" class="p-8 h-full flex items-center justify-center text-slate-400 hide">
+            <div class="text-center">
+                <svg class="w-16 h-16 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                <p>Connexion API Analytics en cours...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- LOGIC JS -->
+    <script>
+        // --- 1. LOGIN LOGIC ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('login-btn');
+            btn.innerHTML = '<span class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>';
+            setTimeout(() => {
+                document.getElementById('login-screen').classList.add('hide');
+                initChart(); // Charge le graphique après login
+            }, 1000);
+        }
+
+        // --- 2. TABS LOGIC ---
+        function switchTab(tabName) {
+            // Hide all views
+            ['dashboard', 'users', 'analytics'].forEach(t => {
+                document.getElementById('view-' + t).classList.add('hide');
+                const btn = document.getElementById('nav-' + t);
+                btn.className = "nav-item w-full flex items-center space-x-3 px-6 py-4 text-slate-500 hover:bg-slate-50";
+            });
+
+            // Show active view
+            document.getElementById('view-' + tabName).classList.remove('hide');
+            const activeBtn = document.getElementById('nav-' + tabName);
+            activeBtn.className = "nav-item w-full flex items-center space-x-3 px-6 py-4 bg-red-50 text-red-600 border-r-4 border-red-600";
+            
+            // Update Title
+            const titles = { 'dashboard': 'Dashboard', 'users': 'Utilisateurs', 'analytics': 'Analytics Web' };
+            document.getElementById('page-title').innerText = titles[tabName];
+        }
+
+        // --- 3. CHART JS LOGIC ---
+        function initChart() {
+            const ctx = document.getElementById('trafficChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                    datasets: [{
+                        label: 'Visites Web',
+                        data: [4000, 3000, 2000, 2780, 1890, 2390, 3490],
+                        borderColor: '#94A3B8',
+                        tension: 0.4
+                    }, {
+                        label: 'Téléchargements App',
+                        data: [240, 139, 980, 390, 480, 380, 430],
+                        borderColor: '#E11D48',
+                        backgroundColor: 'rgba(225, 29, 72, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true, grid: { borderDash: [2, 4] } }, x: { grid: { display: false } } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
